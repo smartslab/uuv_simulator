@@ -76,17 +76,19 @@
   </xacro:macro>
 
   <!-- THRUSTER MODULE MACROS  -->
-
   <xacro:macro name="generic_thruster_macro"
     params="namespace
             thruster_id
+            x_axis:=1
+            y_axis:=0
+            z_axis:=0
             *origin
             mesh_filename
             *dynamics
             *conversion">
     <joint name="${namespace}/thruster_${thruster_id}_joint" type="continuous">
       <xacro:insert_block name="origin"/>
-      <axis xyz="1 0 0"/>
+      <axis xyz="${x_axis} ${y_axis} ${z_axis}"/>
       <parent link="${namespace}/base_link"/>
       <child link="${namespace}/thruster_${thruster_id}"/>
     </joint>
@@ -135,11 +137,17 @@
   <xacro:macro name="thruster_module_first_order_basic_fcn_macro"
       params="namespace
               thruster_id
+              x_axis:=1
+              y_axis:=0
+              z_axis:=0
               *origin
               mesh_filename
               dyn_time_constant
               rotor_constant">
     <xacro:generic_thruster_macro
+      x_axis="${x_axis}"
+      y_axis="${y_axis}"
+      z_axis="${z_axis}"
       namespace="${namespace}"
       thruster_id="${thruster_id}"
       mesh_filename="${mesh_filename}">
