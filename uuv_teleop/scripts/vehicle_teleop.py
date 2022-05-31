@@ -25,10 +25,14 @@ from sensor_msgs.msg import Joy
 class VehicleTeleop:
     def __init__(self):
         # Load the mapping for each input
-        self._axes = dict(x=4, y=3, z=1,
-                          roll=2, pitch=5, yaw=0,
+        self._axes = dict(x=0, y=2, z=3,
+                          roll=2, pitch=5, yaw=1,
                           xfast=-1, yfast=-1, zfast=-1,
                           rollfast=-1, pitchfast=-1, yawfast=-1)
+        #self._axes = dict(x=4, y=3, z=1,
+        #                  roll=2, pitch=5, yaw=0,
+        #                  xfast=-1, yfast=-1, zfast=-1,
+        #                  rollfast=-1, pitchfast=-1, yawfast=-1)
         # Load the gain for each joystick axis input
         # (default values for the XBox 360 controller)
         self._axes_gain = dict(x=3, y=3, z=0.5,
@@ -55,7 +59,7 @@ class VehicleTeleop:
             self._deadzone = float(rospy.get_param('~deadzone'))
 
         # Default for the RB button of the XBox 360 controller
-        self._deadman_button = -1
+        self._deadman_button = 6 #formerly -1
         if rospy.has_param('~deadman_button'):
             self._deadman_button = int(rospy.get_param('~deadman_button'))
 
@@ -74,7 +78,7 @@ class VehicleTeleop:
             self._exclusion_buttons = list()
 
         # Default for the start button of the XBox 360 controller
-        self._home_button = 7
+        self._home_button = 2 #formerly 7
         if rospy.has_param('~home_button'):
             self._home_button = int(rospy.get_param('~home_button'))
 

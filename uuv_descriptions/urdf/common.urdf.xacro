@@ -59,6 +59,8 @@
 	<material name="black">
 		<color rgba="0.05 0.05 0.05 1.0"/>
 	</material>
+	
+	
 
   <!-- Added-mass for a sphere -->
   <xacro:macro name="added_mass_sphere" params="radius rho">

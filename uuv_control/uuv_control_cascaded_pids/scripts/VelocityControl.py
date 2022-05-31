@@ -42,7 +42,7 @@ class VelocityControllerNode:
 
         # ROS infrastructure
         self.sub_cmd_vel = rospy.Subscriber('cmd_vel', numpy_msg(geometry_msgs.Twist), self.cmd_vel_callback)
-        self.sub_odometry = rospy.Subscriber('odom', numpy_msg(Odometry), self.odometry_callback)
+        self.sub_odometry = rospy.Subscriber('rtabmap/odomrtab', numpy_msg(Odometry), self.odometry_callback)
         self.pub_cmd_accel = rospy.Publisher('cmd_accel', geometry_msgs.Accel, queue_size=10)
         self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
 
@@ -60,7 +60,7 @@ class VelocityControllerNode:
             return
 
         linear = msg.twist.twist.linear
-        angular = msg.twist.twist.angular
+        angular = msg.twist.twist.angular        
         v_linear = numpy.array([linear.x, linear.y, linear.z])
         v_angular = numpy.array([angular.x, angular.y, angular.z])
 

@@ -2,7 +2,13 @@
   <arg name="model_name" />
   <arg name="uuv_name" default="$(arg model_name)"/>
   <arg name="joy_id" default="0"/>
-
+  <arg name="deadman_button" default="6"/>
+  <arg name="gain_yaw" default=".2"/>
+  <arg name="axis_roll" default="-1"/>
+  <arg name="axis_pitch" default="-1"/>
+  <arg name="gain_roll" default="0.0"/>
+  <arg name="gain_pitch" default="0.0"/>  
+  
   <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
     <arg name="uuv_name" value="$(arg uuv_name)" />
     <arg name="model_name" value="$(arg model_name)" />
@@ -29,5 +35,11 @@
     <arg name="joy_id" value="$(arg joy_id)"/>
     <arg name="output_topic" value="cmd_vel"/>
     <arg name="message_type" value="twist"/>
+    <arg name="deadman_button" value="$(arg deadman_button)"/>
+    <arg name="gain_yaw" value="$(arg gain_yaw)"/>
+    <arg name="axis_roll" value="$(arg axis_roll)"/>
+    <arg name="axis_pitch" value="$(arg axis_pitch)"/>
+    <arg name="gain_roll" value="$(arg gain_pitch)"/>
+    <arg name="gain_pitch" value="$(arg gain_roll)"/>
   </include>
 </launch>

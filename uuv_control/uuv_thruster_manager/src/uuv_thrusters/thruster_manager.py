@@ -67,6 +67,7 @@ class ThrusterManager:
         self.config = rospy.get_param('thruster_manager')
 
         robot_description_param = self.namespace + 'robot_description'
+        rospy.loginfo('robot_description_param= ' + robot_description_param)
         self.use_robot_descr = False
         self.axes = {}
         if rospy.has_param(robot_description_param):
@@ -244,20 +245,26 @@ class ThrusterManager:
         for i in range(self.MAX_THRUSTERS):
             frame = self.namespace + \
                 self.config['thruster_frame_base'] + str(i)
+            dummy = self.namespace + \
+                self.config['thruster_frame_base_dummy'] + str(i)
+            rospy.loginfo('frame:' + str(frame))
             try:
                 # try to get thruster pose with respect to base frame via tf
-                rospy.loginfo('transform: ' + base + ' -> ' + frame)
+                rospy.loginfo('transform: ' + base + ' -> ' + dummy)
                 now = rospy.Time.now() + rospy.Duration(0.2)
-                listener.waitForTransform(base, frame,
+                listener.waitForTransform(base, dummy,
                                                now, rospy.Duration(1.0))
-                [pos, quat] = listener.lookupTransform(base, frame, now)
+                [pos, quat] = listener.lookupTransform(base, dummy, now)
+                rospy.loginfo('pos=' +str(pos))
+                rospy.loginfo('quat=' +str(quat))
 
                 topic = self.config['thruster_topic_prefix'] + str(i) + \
                     self.config['thruster_topic_suffix']
 
                 # If not using robot_description, thrust_axis=None which will
                 # result in the thrust axis being the x-axis,i.e. (1,0,0)
-                thrust_axis = None if not self.use_robot_descr else self.axes[frame]
+                rospy.loginfo(self.axes[frame])
+                thrust_axis = None #if not self.use_robot_descr else self.axes[frame]
 
                 if equal_thrusters:
                     params = self.config['conversion_fcn_params']
@@ -291,6 +298,7 @@ class ThrusterManager:
 
         # Set the number of thrusters found
         self.n_thrusters = len(self.thrusters)
+        rospy.loginfo('n_thrusters= ' + self.n_thrusters)
 
         # Fill the thrust vector
         self.thrust = numpy.zeros(self.n_thrusters)

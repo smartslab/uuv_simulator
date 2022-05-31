@@ -45,7 +45,7 @@
   </xacro:default_imu_macro>
 
   <!-- Mount a camera -->
-  <xacro:default_camera namespace="${namespace}" parent_link="${namespace}/base_link" suffix="">
+  <xacro:default_camera namespace="${namespace}" parent_link="${namespace}/base_link" suffix="depth">
     <origin xyz="1.15 0 0.4" rpy="0 0.6 0"/>
   </xacro:default_camera>
 

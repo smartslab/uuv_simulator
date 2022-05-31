@@ -90,7 +90,7 @@
       <parent link="${namespace}/base_link"/>
       <child link="${namespace}/thruster_${thruster_id}"/>
     </joint>
-
+    
     <link name="${namespace}/thruster_${thruster_id}">
       <xacro:box_inertial x="0" y="0" z="0" mass="0.001">
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -116,6 +116,8 @@
         <linkName>${namespace}/thruster_${thruster_id}</linkName>
         <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
         <thrusterID>${thruster_id}</thrusterID>
+        <thrustMin>0</thrustMin>
+        <thrustMax>51.48</thrustMax>
         <xacro:insert_block name="dynamics"/>
         <xacro:insert_block name="conversion"/>
       </plugin>
@@ -124,8 +126,119 @@
     <gazebo reference="${namespace}/thruster_${thruster_id}">
       <selfCollide>false</selfCollide>
     </gazebo>
+    
+    <joint name="${namespace}/thrusterdummy_${thruster_id}_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <axis xyz="1 0 0"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/thrusterdummy_${thruster_id}"/>
+    </joint>
+    
+    <link name="${namespace}/thrusterdummy_${thruster_id}">
+      <xacro:box_inertial x="0" y="0" z="0" mass="0.001">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="${mesh_filename}" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <!-- todo: gazebo needs a collision volume or it will ignore the pose of
+           the joint that leads to this link (and assume it to be the identity) -->
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+    </link>
+    <gazebo reference="${namespace}/thrusterdummy_${thruster_id}">
+      <selfCollide>false</selfCollide>
+    </gazebo>
   </xacro:macro>
+  
+  
+  <xacro:macro name="bluerov2_thruster_macro"
+    params="namespace
+            thruster_id
+            *origin
+            mesh_filename
+            *dynamics
+            *conversion">
+    <joint name="${namespace}/thruster_${thruster_id}_joint" type="continuous">
+      <xacro:insert_block name="origin"/>
+      <axis xyz="1 0 0"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/thruster_${thruster_id}"/>
+    </joint>
+    
+    <link name="${namespace}/thruster_${thruster_id}">
+      <xacro:box_inertial x="0" y="0" z="0" mass="0.001">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="${mesh_filename}" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <!-- todo: gazebo needs a collision volume or it will ignore the pose of
+           the joint that leads to this link (and assume it to be the identity) -->
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+    </link>
 
+    <gazebo>
+      <plugin name="${namespace}_${thruster_id}_thruster_model" filename="libuuv_thruster_ros_plugin.so">
+        <linkName>${namespace}/thruster_${thruster_id}</linkName>
+        <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
+        <thrusterID>${thruster_id}</thrusterID>
+        <thrustMin>0</thrustMin>
+        <thrustMax>51.48</thrustMax>
+        <xacro:insert_block name="dynamics"/>
+        <xacro:insert_block name="conversion"/>
+      </plugin>
+    </gazebo>
+
+    <gazebo reference="${namespace}/thruster_${thruster_id}">
+      <selfCollide>false</selfCollide>
+    </gazebo>
+    
+    <joint name="${namespace}/thrusterdummy_${thruster_id}_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <axis xyz="1 0 0"/>
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/thrusterdummy_${thruster_id}"/>
+    </joint>
+    
+    <link name="${namespace}/thrusterdummy_${thruster_id}">
+      <xacro:box_inertial x="0" y="0" z="0" mass="0.001">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="${mesh_filename}" scale="1 1 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <!-- todo: gazebo needs a collision volume or it will ignore the pose of
+           the joint that leads to this link (and assume it to be the identity) -->
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+    </link>
+    <gazebo reference="${namespace}/thrusterdummy_${thruster_id}">
+      <selfCollide>false</selfCollide>
+    </gazebo>
+  </xacro:macro>
   <!--
     Thruster model with first order dynamic model for the rotor dynamics
     and a proportional non-linear steady-state conversion from the rotor's
@@ -147,6 +260,23 @@
       <xacro:rotor_dyn_first_order_macro time_constant="${dyn_time_constant}"/>
       <xacro:thruster_cf_basic_macro rotor_constant="${rotor_constant}"/>
     </xacro:generic_thruster_macro>
+  </xacro:macro>
+  
+  <xacro:macro name="thruster_module_first_order_basic_fcn_macro_bluerov2"
+      params="namespace
+              thruster_id
+              *origin
+              mesh_filename
+              dyn_time_constant
+              rotor_constant">
+    <xacro:bluerov2_thruster_macro
+      namespace="${namespace}"
+      thruster_id="${thruster_id}"
+      mesh_filename="${mesh_filename}">
+      <xacro:insert_block name="origin"/>
+      <xacro:rotor_dyn_first_order_macro time_constant="${dyn_time_constant}"/>
+      <xacro:thruster_cf_basic_macro rotor_constant="${rotor_constant}"/>
+    </xacro:bluerov2_thruster_macro>
   </xacro:macro>
 
 </robot>

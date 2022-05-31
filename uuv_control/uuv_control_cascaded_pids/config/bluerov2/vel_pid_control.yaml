@@ -1,0 +1,9 @@
+velocity_control/linear_d: 0.0
+velocity_control/linear_i: 0.0
+velocity_control/linear_p: 0.5
+velocity_control/linear_sat: 1.0
+
+velocity_control/angular_d: 0.0
+velocity_control/angular_i: 0.0
+velocity_control/angular_p: .5
+velocity_control/angular_sat: 1.0
