@@ -7,7 +7,10 @@
   <arg name="axis_roll" default="-1"/>
   <arg name="axis_pitch" default="-1"/>
   <arg name="gain_roll" default="0.0"/>
-  <arg name="gain_pitch" default="0.0"/>  
+  <arg name="gain_pitch" default="0.0"/> 
+  <arg name="gain_x" default="0.3"/>
+  <arg name="gain_y" default="0.3"/>
+  <arg name="gain_z" default="0.3"/> 
   
   <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
     <arg name="uuv_name" value="$(arg uuv_name)" />
@@ -41,5 +44,8 @@
     <arg name="axis_pitch" value="$(arg axis_pitch)"/>
     <arg name="gain_roll" value="$(arg gain_pitch)"/>
     <arg name="gain_pitch" value="$(arg gain_roll)"/>
+    <arg name="gain_x" value="$(arg gain_x)"/>
+    <arg name="gain_y" value="$(arg gain_y)"/>
+    <arg name="gain_z" value="$(arg gain_z)"/>
   </include>
 </launch>
