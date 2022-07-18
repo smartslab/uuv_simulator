@@ -97,7 +97,7 @@ class AccelerationControllerNode:
         force_msg = Wrench()
         force_msg.force.x = force_torque[0]
         force_msg.force.y = force_torque[1]
-        force_msg.force.z = force_torque[2]
+        force_msg.force.z = force_torque[2]-9.81
 
         force_msg.torque.x = force_torque[3]
         force_msg.torque.y = force_torque[4]

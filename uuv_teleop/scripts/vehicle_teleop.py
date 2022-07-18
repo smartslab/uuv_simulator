@@ -25,10 +25,16 @@ from sensor_msgs.msg import Joy
 class VehicleTeleop:
     def __init__(self):
         # Load the mapping for each input
-        self._axes = dict(x=0, y=2, z=3,
-                          roll=2, pitch=5, yaw=1,
+        self._axes = dict(x=1, y=3, z=4,
+                          roll=2, pitch=5, yaw=0,
                           xfast=-1, yfast=-1, zfast=-1,
                           rollfast=-1, pitchfast=-1, yawfast=-1)
+        #above for wired xbox 1
+        #self._axes = dict(x=0, y=2, z=3,
+        #                  roll=2, pitch=5, yaw=1,
+        #                  xfast=-1, yfast=-1, zfast=-1,
+        #                  rollfast=-1, pitchfast=-1, yawfast=-1)
+        #Above for wireless xbox 1
         #self._axes = dict(x=4, y=3, z=1,
         #                  roll=2, pitch=5, yaw=0,
         #                  xfast=-1, yfast=-1, zfast=-1,

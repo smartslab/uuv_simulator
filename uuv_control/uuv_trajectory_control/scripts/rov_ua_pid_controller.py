@@ -27,7 +27,8 @@ class ROVUnderActuatedPIDController(DPControllerBase):
 
     def __init__(self, *args):
         # Start the super class
-        DPControllerBase.__init__(self, *args)
+        super(ROVUnderActuatedPIDController, self).__init__(self)
+        #DPControllerBase.__init__(self, *args)
         self._logger.info('Initializing: Underactuated PID controller')
         # Proportional gains
         self._Kp = np.zeros(shape=(4, 4))

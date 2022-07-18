@@ -31,7 +31,7 @@
       suffix=""
       parent_link="${parent_link}"
       topic="pressure"
-      mass="0.015"
+      mass="0.0000000015"
       update_rate="10"
       range="30000"
       noise_sigma="3.0"

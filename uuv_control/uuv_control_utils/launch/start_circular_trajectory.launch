@@ -1,15 +1,15 @@
 <launch>
-  <arg name="uuv_name" />
+  <arg name="uuv_name" default="bluerov2"/>
   <arg name="start_time" default="-1"/>
   <arg name="radius" default="8"/>
-  <arg name="center_x" default="4"/>
-  <arg name="center_y" default="2"/>
+  <arg name="center_x" default="-5"/>
+  <arg name="center_y" default="-30"/>
   <arg name="center_z" default="-22"/>
   <arg name="n_points" default="50"/>
   <!-- Heading offset given in degrees -->
   <arg name="heading_offset" default="0"/>
-  <arg name="duration" default="0"/>
-  <arg name="max_forward_speed" default="0.3"/>
+  <arg name="duration" default="100"/>
+  <arg name="max_forward_speed" default="1"/>
 
   <group ns="$(arg uuv_name)">
     <node pkg="uuv_control_utils"
