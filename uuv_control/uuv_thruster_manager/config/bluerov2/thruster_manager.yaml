@@ -4,7 +4,8 @@ thruster_manager:
   thruster_topic_prefix: thrusters/
   thruster_topic_suffix: /input
   thruster_frame_base: thruster_
-  max_thrust: 1540.0
+  thruster_frame_base_dummy: thruster_dummy_
+  max_thrust: 6.7
   timeout: -1
   update_rate: 10
   ##################################################

@@ -252,9 +252,9 @@ class ThrusterManager:
                 # try to get thruster pose with respect to base frame via tf
                 rospy.loginfo('transform: ' + base + ' -> ' + dummy)
                 now = rospy.Time.now() + rospy.Duration(0.2)
-                listener.waitForTransform(base, dummy,
+                listener.waitForTransform(base, frame,
                                                now, rospy.Duration(1.0))
-                [pos, quat] = listener.lookupTransform(base, dummy, now)
+                [pos, quat] = listener.lookupTransform(base, frame, now)
                 rospy.loginfo('pos=' +str(pos))
                 rospy.loginfo('quat=' +str(quat))
 
@@ -298,7 +298,7 @@ class ThrusterManager:
 
         # Set the number of thrusters found
         self.n_thrusters = len(self.thrusters)
-        rospy.loginfo('n_thrusters= ' + self.n_thrusters)
+        rospy.loginfo('n_thrusters= ' + str(self.n_thrusters))
 
         # Fill the thrust vector
         self.thrust = numpy.zeros(self.n_thrusters)
