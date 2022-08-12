@@ -119,6 +119,7 @@ class TrajectoryGenerator(object):
         """
 
         if self.points is None:
+            self._logger.error('not reading points')
             return None
         msg = uuv_control_msgs.Trajectory()
         try:
@@ -255,7 +256,8 @@ class TrajectoryGenerator(object):
         return True
 
     def init_from_waypoint_message(self, msg):
-        wp_set = WaypointSet.from_message(msg)
+        wp_set = WaypointSet()
+        wp_set.from_message(msg)
         self._wp_interp.init_waypoints(wp_set)
         self._wp_interp_on = True
 

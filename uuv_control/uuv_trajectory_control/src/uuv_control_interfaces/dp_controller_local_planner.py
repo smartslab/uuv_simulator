@@ -232,7 +232,7 @@ class DPControllerLocalPlanner(object):
 
         # Subscribing topic for the trajectory given to the controller
         self._input_trajectory_sub = rospy.Subscriber(
-            'input_trajectory', Trajectory, self._update_trajectory_from_msg)
+            'input_trajectory', WaypointSet, self._update_trajectory_from_msg)
 
         self._max_time_pub = rospy.Publisher('time_to_target', Float64, queue_size=1)
 
@@ -382,11 +382,13 @@ class DPControllerLocalPlanner(object):
         self._waypoints_msg = WaypointSet()
         if self._traj_interpolator.is_using_waypoints():
             wps = self._traj_interpolator.get_waypoints()
+            #self._logger.info('wps=' + str(wps))
             if wps is not None:
                 wps.inertial_frame_id = self.inertial_frame_id
                 self._waypoints_msg = wps.to_message()
-                self._waypoints_msg.header.frame_id = self.inertial_frame_id
+                self._waypoints_msg.header.frame_id = self.inertial_frame_id        
         msg = self._traj_interpolator.get_trajectory_as_message()
+        #self._logger.info('msg=  ' + str(msg))
         if msg is not None:
             msg.header.frame_id = self.inertial_frame_id
             self._trajectory_msg = msg
@@ -580,10 +582,23 @@ class DPControllerLocalPlanner(object):
         return self._vehicle_pose.rotq
 
     def _update_trajectory_from_msg(self, msg):
+        request=InitWaypointSet()
+        request.start_time=msg.start_time
+        t = rospy.Time(msg.start_time.data.secs, msg.start_time.data.nsecs)
+        tsecs=t.secs+.000000001*t.nsecs
+        if tsecs < rospy.get_time():
+            request.start_now=True
+        else:
+            request.start_now=False
+        request.waypoints=msg.waypoints
+        request.max_forward_speed=1
+        request.heading_offset=0
+        request.interpolator='linear'           
         self._stamp_trajectory_received = rospy.get_time()
-        self._traj_interpolator.init_from_trajectory_message(msg)
+        self._traj_interpolator.init_from_waypoint_message(msg)
         self._logger.info('New trajectory received at ' + str(self._stamp_trajectory_received) + 's')
-        self._update_trajectory_info()
+        #self._update_trajectory_info()
+        self.start_waypoint_list(request)
 
     def start_station_keeping(self):
         """Start station keeping mode by setting the pose
@@ -639,7 +654,8 @@ class DPControllerLocalPlanner(object):
         waypointset_msg.waypoints = request.waypoints
         wp_set.from_message(waypointset_msg)
         wp_set = self._transform_waypoint_set(wp_set)
-        wp_set = self._apply_workspace_constraints(wp_set)
+        wp_set = self._apply_workspace_constraints(wp_set)        
+        
 
         if self._traj_interpolator.set_waypoints(wp_set, self.get_vehicle_rot()):
             self._station_keeping_center = None
@@ -653,7 +669,7 @@ class DPControllerLocalPlanner(object):
             self._logger.info('============================')
             self._logger.info('      WAYPOINT SET          ')
             self._logger.info('============================')
-            self._logger.info('Interpolator = ' + request.interpolator.data)
+            self._logger.info('Interpolator = ' + request.interpolator)
             self._logger.info('# waypoints = %d' % self._traj_interpolator.get_waypoints().num_waypoints)
             self._logger.info('Starting time = %.2f' % (t.to_sec() if not request.start_now else rospy.get_time()))
             self._logger.info('Inertial frame ID = ' + self.inertial_frame_id)

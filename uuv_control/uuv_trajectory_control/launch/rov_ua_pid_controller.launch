@@ -6,7 +6,7 @@
   <!-- Thruster saturation -->
   <arg name="saturation" default="1200"/>
   <!-- Flag set as true to use load controller the parameters from the file  -->
-  <arg name="use_params_file" default="false"/>
+  <arg name="use_params_file" default="true"/>
   <!-- Flag to start the trajectory visual markers publisher -->
   <arg name="gui_on" default="true"/>
   <!-- If the file is not used, read the parameters from the user input -->
@@ -57,7 +57,7 @@
             name="rov_ua_pid_controller"
             output="screen">
         <!-- Remap necessary topics -->
-        <remap from="odom" to="rtabmap/odomrtab"/>
+        <remap from="odom" to="odom_world"/>
         <remap from="trajectory" to="dp_controller/trajectory"/>
         <remap from="input_trajectory" to="dp_controller/input_trajectory"/>
         <remap from="waypoints" to="dp_controller/waypoints"/>

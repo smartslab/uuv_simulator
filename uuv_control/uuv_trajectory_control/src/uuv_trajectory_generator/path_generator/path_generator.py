@@ -234,7 +234,7 @@ class PathGenerator(object):
     def init_waypoints(self, waypoints=None, init_rot=np.array([0, 0, 0, 1])):
         if waypoints is not None:
             self._waypoints = deepcopy(waypoints)
-
+            
         if self._waypoints is None:
             self._logger.error('Waypoint list has not been initialized')
             return False
