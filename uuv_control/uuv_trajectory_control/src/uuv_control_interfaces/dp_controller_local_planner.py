@@ -586,7 +586,8 @@ class DPControllerLocalPlanner(object):
         request.start_time=msg.start_time
         t = rospy.Time(msg.start_time.data.secs, msg.start_time.data.nsecs)
         tsecs=t.secs+.000000001*t.nsecs
-        if tsecs < rospy.get_time():
+        #self._logger.info('start time:' + str(tsecs) + ' now:' + str(rospy.get_time()))
+        if tsecs <= rospy.get_time()+.001:
             request.start_now=True
         else:
             request.start_now=False

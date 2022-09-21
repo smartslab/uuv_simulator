@@ -27,9 +27,9 @@
   <xacro:default_magnetometer namespace="${namespace}" parent_link="${namespace}/base_link"/>
 
   <!-- RPT  -->
-  <xacro:default_rpt namespace="${namespace}" parent_link="${namespace}/base_link">
+  <!--<xacro:default_rpt namespace="${namespace}" parent_link="${namespace}/base_link">
     <origin xyz="-1.32 0 0.8" rpy="0 0 0"/>
-  </xacro:default_rpt>
+  </xacro:default_rpt>-->
 
   <!-- Pressure  -->
   <xacro:default_pressure_macro namespace="${namespace}" parent_link="${namespace}/base_link">

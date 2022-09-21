@@ -1264,6 +1264,8 @@ def quaternion_inverse(quaternion):
     True
 
     """
+    if numpy.dot(quaternion, quaternion) == 0.0:
+        return [0.0, 0.0, 0.0, 0.0]
     return quaternion_conjugate(quaternion) / numpy.dot(quaternion, quaternion)
 
 

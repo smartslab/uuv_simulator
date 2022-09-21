@@ -116,7 +116,7 @@
         <linkName>${namespace}/thruster_${thruster_id}</linkName>
         <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
         <thrusterID>${thruster_id}</thrusterID>
-        <thrustMin>0</thrustMin>
+        <thrustMin>-51.48</thrustMin>
         <thrustMax>51.48</thrustMax>
         <xacro:insert_block name="dynamics"/>
         <xacro:insert_block name="conversion"/>

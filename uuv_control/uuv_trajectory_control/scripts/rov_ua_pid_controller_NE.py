@@ -16,7 +16,8 @@
 import numpy as np
 import rospy
 from uuv_control_msgs.srv import *
-from uuv_control_interfaces.dp_controller_base import DPControllerBase
+from uuv_control_interfaces.dp_controller_base_NE import DPControllerBase
+
 
 
 class ROVUnderActuatedPIDController(DPControllerBase):
@@ -126,9 +127,19 @@ class ROVUnderActuatedPIDController(DPControllerBase):
                               self._errors['vel'][2],
                               self._errors['vel'][5]])
         
+        Ud=self._Ud
+        NE=self._NE
+        cur_error_pose6 = np.array([self.error_pose_euler[0],
+                                    self.error_pose_euler[1],
+                                    self.error_pose_euler[2],
+                                    self.error_pose_euler[3],
+                                    self.error_pose_euler[4],
+                                    self.error_pose_euler[5]])
+        
+        NE_tau = Ud+NE+cur_error_pose6
         ua_tau = np.dot(self._Kp, cur_error_pose) + np.dot(self._Kd, error_vel) + np.dot(self._Ki, self._int)
         #self._logger.info(str(ua_tau))
-        self._tau = np.array([ua_tau[0], ua_tau[1], ua_tau[2], 0, 0, ua_tau[3]])
+        self._tau = np.array([NE_tau[0], NE_tau[1], NE_tau[2], 0, 0, NE_tau[3]])
         self.publish_control_wrench(self._tau)
         return True
 

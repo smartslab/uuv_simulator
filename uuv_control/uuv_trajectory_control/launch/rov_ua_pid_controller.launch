@@ -20,6 +20,7 @@
   <arg name="Ki" default="0.5,0.5,0.5,0.5"/>
 
   <arg name="controller_config_file" default="$(find uuv_trajectory_control)/config/controllers/ua_pid/$(arg model_name)/params.yaml"/>
+  <arg name="model_config_file" default="$(find uuv_trajectory_control)/config/models/$(arg model_name)/params.yaml"/>
 
   <!--Thruster manager configuration  -->
   <arg name="thruster_manager_output_dir" default="$(find uuv_thruster_manager)/config/$(arg model_name)"/>
@@ -53,7 +54,7 @@
   <group if="$(arg use_params_file)">
     <group ns="$(arg uuv_name)">
       <node pkg="uuv_trajectory_control"
-            type="rov_ua_pid_controller.py"
+            type="rov_ua_pid_controller_NE.py"
             name="rov_ua_pid_controller"
             output="screen">
         <!-- Remap necessary topics -->
@@ -65,6 +66,7 @@
         <remap from="reference" to="dp_controller/reference"/>
         <remap from="thruster_output" to="thruster_manager/input_stamped"/>
         <rosparam file="$(arg controller_config_file)" command="load"/>
+        <rosparam file="$(arg model_config_file)" command="load"/>
       </node>
     </group>
   </group>
@@ -72,7 +74,7 @@
   <group unless="$(arg use_params_file)">
     <group ns="$(arg uuv_name)">
       <node pkg="uuv_trajectory_control"
-            type="rov_ua_pid_controller.py"
+            type="rov_ua_pid_controller_NE.py"
             name="rov_ua_pid_controller"
             output="screen">
         <!-- Remap necessary topics -->

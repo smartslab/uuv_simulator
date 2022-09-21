@@ -159,11 +159,19 @@ class Vehicle(object):
         self._M[3:6, 3:6] = self._calc_inertial_tensor()
 
         # Loading the added-mass matrix
-        self._Ma = np.zeros((6, 6))
+        self._Ma = np.zeros(shape=(6, 6))
         if rospy.has_param('~Ma'):
-            self._Ma = np.array(rospy.get_param('~Ma'))
+            listMa=rospy.get_param('~Ma')
+            for i in range(0,len(listMa)):
+                if str(type(listMa[i])) == "<class 'str'>":
+                    listMa[i]=float(listMa[i])
+            #rospy.logerr(str(type(listMa)) + str(type(listMa[28])) + str(type(listMa[0])))
+            arrMaflat=np.array(listMa)
+            #rospy.logerr(str(type(arrMaflat)) + str(type(arrMaflat[28])) + str(type(arrMaflat[0])))
+            self._Ma = arrMaflat.reshape(6,6)
+            #rospy.logerr(str(type(self._Ma[0,0]))+ str(self._Ma[0,0]))
             if self._Ma.shape != (6, 6):
-                raise rospy.ROSException('Invalid added mass matrix')
+                raise rospy.ROSException('Added Mass must be given as a 6x6 matrix or the diagonal coefficients')
 
         # Sum rigid-body and added-mass matrices
         self._Mtotal = np.zeros(shape=(6, 6))
@@ -181,24 +189,37 @@ class Vehicle(object):
         # Loading the linear damping coefficients
         self._linear_damping = np.zeros(shape=(6, 6))
         if rospy.has_param('~linear_damping'):
-            self._linear_damping = np.array(rospy.get_param('~linear_damping'))
+            list_linear_damping = rospy.get_param('~linear_damping')
+            for i in range(0,len(list_linear_damping)):
+                if str(type(list_linear_damping[i])) == "<class 'str'>":
+                    list_linear_damping[i]=float(list_linear_damping[i])
+            self._linear_damping=np.array(list_linear_damping)
             if self._linear_damping.shape == (6,):
                 self._linear_damping = np.diag(self._linear_damping)
             if self._linear_damping.shape != (6, 6):
                 raise rospy.ROSException('Linear damping must be given as a 6x6 matrix or the diagonal coefficients')
+        self._linear_damping = self._linear_damping.astype(float)
 
         # Loading the nonlinear damping coefficients
         self._quad_damping = np.zeros(shape=(6,))
         if rospy.has_param('~quad_damping'):
-            self._quad_damping = np.array(rospy.get_param('~quad_damping'))
+            list_quad_damping = rospy.get_param('~quad_damping')
+            for i in range(0,len(list_quad_damping)):
+                if str(type(list_quad_damping[i])) == "<class 'str'>":
+                    list_quad_damping[i]=float(list_quad_damping[i])
+            self._quad_damping=np.array(list_quad_damping)
             if self._quad_damping.shape != (6,):
                 raise rospy.ROSException('Quadratic damping must be given defined with 6 coefficients')
-
+        self._quad_damping = self._quad_damping.astype(float)
+        
         # Loading the linear damping coefficients proportional to the forward speed
         self._linear_damping_forward_speed = np.zeros(shape=(6, 6))
         if rospy.has_param('~linear_damping_forward_speed'):
-            self._linear_damping_forward_speed = np.array(
-                rospy.get_param('~linear_damping_forward_speed'))
+            list_linear_damping_fw =  rospy.get_param('~linear_damping_forward_speed')
+            for i in range(0,len(list_linear_damping_fw)):
+                if str(type(list_linear_damping_fw[i])) == "<class 'str'>":
+                    list_linear_damping_fw[i]=float(list_linear_damping_fw[i])
+            self._linear_damping_forward_speed=np.array(list_linear_damping_fw)
             if self._linear_damping_forward_speed.shape == (6,):
                 self._linear_damping_forward_speed = np.diag(self._linear_damping_forward_speed)
             if self._linear_damping_forward_speed.shape != (6, 6):
@@ -206,7 +227,8 @@ class Vehicle(object):
                     'Linear damping proportional to the '
                     'forward speed must be given as a 6x6 '
                     'matrix or the diagonal coefficients')
-
+        self._linear_damping_forward_speed = self._linear_damping_forward_speed.astype(float)
+        
         # Initialize damping matrix
         self._D = np.zeros((6, 6))
 
@@ -507,7 +529,8 @@ class Vehicle(object):
         print('Inertial:\n{}'.format(self._calc_inertial_tensor()))
 
     def _calc_mass_matrix(self):
-        self._Mtotal = self._M + self._Ma
+        #rospy.logwarn(str(type(self._M[1,1])) + str(type(self._Ma[0,0])) + str(type(self._Mtotal[0,0])))
+        self._Mtotal = np.add(self._M,self._Ma)
 
     def _update_coriolis(self, vel=None):
         if vel is not None:
@@ -540,7 +563,7 @@ class Vehicle(object):
             nu = vel
         else:
             nu = self.to_SNAME(self._vel)
-
+        #rospy.logwarn(str(type(self._linear_damping)) + str(type(nu[0])) + str(type(self._linear_damping_forward_speed)))
         self._D = -1 * self._linear_damping - nu[0] * self._linear_damping_forward_speed
         for i in range(6):
             self._D[i, i] += -1 * self._quad_damping[i] * np.abs(nu[i])
@@ -699,6 +722,7 @@ class Vehicle(object):
                                       msg.pose.pose.orientation.y,
                                       msg.pose.pose.orientation.z,
                                       msg.pose.pose.orientation.w])
+        #self._logger.info('Vehicle Pose:' + str(self._pose['pos']))
         # Linear velocity on the INERTIAL frame
         lin_vel = np.array([msg.twist.twist.linear.x,
                             msg.twist.twist.linear.y,

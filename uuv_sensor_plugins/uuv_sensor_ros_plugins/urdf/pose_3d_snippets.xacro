@@ -70,7 +70,7 @@
     <xacro:pose_3d_macro
       namespace="${namespace}"
       parent_link="${parent_link}"
-      topic="pose_gt"
+      topic="cheater"
       update_rate="20"
       noise_sigma="0.0"
       noise_amplitude="0.0"

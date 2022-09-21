@@ -34,6 +34,7 @@ from uuv_auv_control_allocator.msg import AUVCommand
 
 from .dp_controller_local_planner import DPControllerLocalPlanner as LocalPlanner
 from ._log import get_logger
+from uuv_control_interfaces.ss3D import ss3D
 
 
 class DPControllerBase(object):
@@ -195,11 +196,28 @@ class DPControllerBase(object):
             self._odometry_callbacks = list_odometry_callbacks
         else:
             self._odometry_callbacks = [self.update_errors,
-                                        self.update_controller]
+                                        self.update_controller,
+                                        self.estimate_noise]
         # Initialize vehicle, if model based
         self._create_vehicle_model()
         # Flag to indicate that odometry topic is receiving data
         self._init_odom = False
+        
+        #Initialize the NE state space systems
+        self.errxss=ss3D(-10.468,.468,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self.erryss=ss3D(-10.667,.667,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self.errzss=ss3D(-10.667,.667,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self.errwss=ss3D(-10.115,.115,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self.Yxss=ss3D(-10.468,4.68,-10,-1,0,0,0,-1,0,1,0,0,10,-4.68,0)
+        self.Yyss=ss3D(-10.667,.667,-1,-10,0,0,0,-1,0,1,0,0,10,-.667,0)
+        self.Yzss=ss3D(-10.667,.667,-1,-10,0,0,0,-1,0,1,0,0,10,-.667,0)
+        self.Ywss=ss3D(-10.115,-1.15,10,1,0,0,0,-1,0,1,0,0,10,1.15,0)
+        self.Uxss=ss3D(-10.468,.468,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self.Uyss=ss3D(-10.667,.667,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self.Uzss=ss3D(-10.667,.667,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self.Uwss=ss3D(-10.115,.115,-1,-10,0,0,0,-1,0,-1,0,0,0,0,-1)
+        self._Ud=np.array([0,0,0,0,0,0])
+        self._NE=np.array([0,0,0,0,0,0])
 
         # Subscribe to odometry topic
         self._odom_topic_sub = rospy.Subscriber(
@@ -405,6 +423,62 @@ class DPControllerBase(object):
             msg.velocity.linear = Vector3(*np.dot(rotBtoI, self._errors['vel'][0:3]))
             msg.velocity.angular = Vector3(*np.dot(rotBtoI, self._errors['vel'][3:6]))
             self._error_pub.publish(msg)
+        
+    def estimate_noise(self):
+        #Calculate Ud from accel in reference and restoring forces from vehicle model
+        rotItoB = self._vehicle_model.rotItoB
+        rotBtoI = self._vehicle_model.rotBtoI
+        Ad=np.hstack((np.dot(rotItoB, self._reference['acc'][0:3]),np.dot(rotItoB, self._reference['acc'][3:6]))) #6DOF
+        Vd=np.hstack((np.dot(rotItoB, self._reference['vel'][0:3]),np.dot(rotItoB, self._reference['vel'][3:6])))
+        M=np.array([[18.81,0,0,0,0,0],
+                    [0,30.1,0,0,0,0],
+                    [0,0,30.1,0,0,0],
+                    [0,0,0,.113,0,0],
+                    [0,0,0,0,.1726,0],
+                    [0,0,0,0,0,.2429]])
+        U=np.dot(M,Ad)
+        self._Ud=U#+self._vehicle_model.compute_force(acc=np.array([0,0,0,0,0,0]),vel=Vd)
+        #self._Ud=[0,0,0,0,0,0]
+        Udx=self._Ud[0]
+        Udy=self._Ud[1]
+        Udz=self._Ud[2]
+        Udw=self._Ud[5]
+        
+        #Get error from vehicle model
+        errx=self._errors['pos'][0]#*1/18.81
+        erry=self._errors['pos'][1]#*1/30.1
+        errz=self._errors['pos'][2]#*1/30.1
+        errw=euler_from_quaternion(self._errors['rot'])[2]#*1/.2429
+       
+                
+        #Get odometry from vehicle model
+        pos = self._vehicle_model.pos
+        quat = self._vehicle_model.quat
+        yaw=euler_from_quaternion(quat)[2]
+        x=pos[0]
+        y=pos[1]
+        z=pos[2]
+        #rospy.logwarn(str(yaw))
+        
+        #Perform the noise estimation step
+        neUx=self.Uxss.update_sys(Udx)[0][0]
+        neUy=self.Uyss.update_sys(Udy)[0][0]
+        neUz=self.Uzss.update_sys(Udz)[0][0]
+        neUw=self.Uwss.update_sys(Udw)[0][0]
+        neYx=self.Yxss.update_sys(x)[0][0]
+        neYy=self.Yyss.update_sys(y)[0][0]
+        neYz=self.Yzss.update_sys(z)[0][0]
+        neYw=self.Ywss.update_sys(yaw)[0][0]
+        neex=self.errxss.update_sys(errx)[0][0]
+        neey=self.erryss.update_sys(erry)[0][0]
+        neez=self.errzss.update_sys(errz)[0][0]
+        neew=self.errwss.update_sys(errw)[0][0]
+        
+        #rospy.logwarn(str(neUw) +',  '+ str(neYw) +',  '+ str(neew))
+        
+        #Format for adding in
+        self._NE=np.array([1/18.81*(-neUx+neYx-neex),1/30.1*(-neUy+neYy-neey),1/30.1*(-neUz+neYz-neez),0,0,1/.2429*(-neUw+neYw-neew)])
+        
 
     def publish_control_wrench(self, force):
         """Publish the thruster manager control set-point.
