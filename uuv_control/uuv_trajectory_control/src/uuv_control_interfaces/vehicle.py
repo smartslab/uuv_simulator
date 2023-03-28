@@ -115,6 +115,8 @@ class Vehicle(object):
         self._body_frame = 'base_link'
         if rospy.has_param('~base_link'):
             self._body_frame = rospy.get_param('~base_link')
+        if self._namespace == 'hardware':
+            self._body_frame = 'oak-d_frame'
 
         self._volume = 0.0
         if rospy.has_param('~volume'):

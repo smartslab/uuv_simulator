@@ -141,7 +141,7 @@
           </image>
           <clip>
             <near>0.05</near>
-            <far>3000</far>
+            <far>25</far>
           </clip>
           <noise>
             <type>gaussian</type>
@@ -155,9 +155,9 @@
           <cameraName>${namespace}/camera${suffix}</cameraName>
           <frameName>${namespace}/camera${suffix}_link_optical</frameName>
 
-          <attenuationR>0.0</attenuationR>
-          <attenuationG>0.0</attenuationG>
-          <attenuationB>0.0</attenuationB>
+          <attenuationR>0.01</attenuationR>
+          <attenuationG>0.01</attenuationG>
+          <attenuationB>0.003</attenuationB>
 
           <backgroundR>0</backgroundR>
           <backgroundG>0</backgroundG>

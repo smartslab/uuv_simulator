@@ -15,6 +15,7 @@
 # limitations under the License.
 import numpy as np
 import rospy
+from geometry_msgs.msg import Wrench
 from uuv_control_msgs.srv import *
 from uuv_control_interfaces.dp_controller_base_NE import DPControllerBase
 
@@ -83,6 +84,7 @@ class ROVUnderActuatedPIDController(DPControllerBase):
 
         self._is_init = True
         self._logger.info('Underactuated PID controller ready!')
+        self.hw_pub=rospy.Publisher('/ovrd_cmd', Wrench, queue_size=1)
 
     def _reset_controller(self):
         super(DPPIDControllerBase, self)._reset_controller()
@@ -116,6 +118,7 @@ class ROVUnderActuatedPIDController(DPControllerBase):
                                    self.error_pose_euler[1],
                                    self.error_pose_euler[2],
                                    self.error_pose_euler[5]])
+        
         self._int += 0.5 * (cur_error_pose + self._error_pose) * self._dt
         # Store current pose error
         self._error_pose = cur_error_pose
@@ -139,9 +142,77 @@ class ROVUnderActuatedPIDController(DPControllerBase):
         NE_tau = Ud+NE+cur_error_pose6
         ua_tau = np.dot(self._Kp, cur_error_pose) + np.dot(self._Kd, error_vel) + np.dot(self._Ki, self._int)
         #self._logger.info(str(ua_tau))
-        self._tau = np.array([NE_tau[0], NE_tau[1], NE_tau[2], 0, 0, NE_tau[3]])
+        self._tau = np.array([ua_tau[0], ua_tau[1], ua_tau[2], 0, 0, ua_tau[3]])
         self.publish_control_wrench(self._tau)
+        #self._logger.info(str(self._tau))
+        self.publish_hw_override(self.forces_normalized(self._tau))
         return True
+        
+    def forces_normalized(self, forces):
+        minforcexy=-10
+        maxforcexy=10
+        minforcez=-10
+        maxforcez=10
+        maxforcew=9
+        minforcew=-9
+        minforcer=-2.5
+        maxforcer=2.5
+    
+        fx=forces[0]
+        fy=forces[1]
+        fz=forces[2]
+        fw=forces[5]
+        fr=forces[3]
+    
+        if fx > maxforcexy:
+            fx=maxforcexy
+        elif fx <minforcexy:
+            fx=minforcexy
+    
+        if fy > maxforcexy:
+            fy=maxforcexy
+        elif fy <minforcexy:
+            fy=minforcexy
+        
+        if fz > maxforcez:
+            fz=maxforcez
+        elif fz <minforcez:
+            fz=minforcez
+        
+        if fr > maxforcer:
+            fr=maxforcer
+        elif fr <minforcer:
+            fr=minforcer
+        
+        if fw > maxforcew:
+            fw=maxforcew
+        elif fw <minforcew:
+            fw=minforcew
+            
+        fxn=2*(fx-minforcexy)/(maxforcexy-minforcexy)-1
+        fyn=2*(fy-minforcexy)/(maxforcexy-minforcexy)-1
+        fzn=2*(fz-minforcez)/(maxforcez-minforcez)-1
+        fwn=2*(fw-minforcew)/(maxforcew-minforcew)-1
+        frn=2*(fr-minforcer)/(maxforcer-minforcer)-1
+    
+        override=np.array([[1500+fxn*400],
+                           [1500+fyn*400],
+                           [1500+fzn*400],
+                           [1500+frn*400],
+                           [1500],
+                           [1500+fwn*400]])
+    
+        return override
+    
+    def publish_hw_override(self, forces):
+        override=Wrench()
+        override.force.x=int(forces[0])
+        override.force.y=int(forces[1])
+        override.force.z=int(forces[2])
+        override.torque.x=int(forces[3])
+        override.torque.x=int(forces[4])
+        override.torque.x=int(forces[5])
+        self.hw_pub.publish(override)
 
 if __name__ == '__main__':
     print('Starting Underactuated PID Controller')

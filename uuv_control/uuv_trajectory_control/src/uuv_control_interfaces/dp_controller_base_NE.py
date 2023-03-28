@@ -33,6 +33,7 @@ from uuv_control_msgs.srv import *
 from uuv_auv_control_allocator.msg import AUVCommand
 
 from .dp_controller_local_planner import DPControllerLocalPlanner as LocalPlanner
+from uuv_control_interfaces.custom_trajectory import custom_trajectory 
 from ._log import get_logger
 from uuv_control_interfaces.ss3D import ss3D
 
@@ -125,6 +126,9 @@ class DPControllerBase(object):
             full_dof=planner_full_dof,
             stamped_pose_only=self._use_stamped_poses_only,
             thrusters_only=self.thrusters_only)
+            
+        #Similarly for the custom trajectory 
+        self._custom_traj = custom_trajectory()
 
         self._control_saturation = 5000
         # TODO: Fix the saturation term and how it is applied
@@ -197,7 +201,8 @@ class DPControllerBase(object):
         else:
             self._odometry_callbacks = [self.update_errors,
                                         self.update_controller,
-                                        self.estimate_noise]
+                                        self.estimate_noise,
+                                        self.feedforward]
         # Initialize vehicle, if model based
         self._create_vehicle_model()
         # Flag to indicate that odometry topic is receiving data
@@ -329,7 +334,9 @@ class DPControllerBase(object):
             self._vehicle_model.pos, self._vehicle_model.quat)
 
         t = rospy.get_time()
-        reference = self._local_planner.interpolate(t)
+        #reference = self._local_planner.interpolate(t)
+        reference=self._custom_traj.interpolate(t)
+        #rospy.logwarn(str(type(reference)))
 
         if reference is not None:
             self._reference['pos'] = reference.p
@@ -407,6 +414,7 @@ class DPControllerBase(object):
                 quaternion_inverse(quat), self._reference['rot'])
 
             # Velocity error with respect to the the BODY frame
+            #rospy.logwarn(str(self._reference) + str(np.shape(self._reference)))
             self._errors['vel'] = np.hstack((
                 np.dot(rotItoB, self._reference['vel'][0:3]) - vel[0:3],
                 np.dot(rotItoB, self._reference['vel'][3:6]) - vel[3:6]))
@@ -450,7 +458,6 @@ class DPControllerBase(object):
         errz=self._errors['pos'][2]#*1/30.1
         errw=euler_from_quaternion(self._errors['rot'])[2]#*1/.2429
        
-                
         #Get odometry from vehicle model
         pos = self._vehicle_model.pos
         quat = self._vehicle_model.quat
@@ -478,7 +485,59 @@ class DPControllerBase(object):
         
         #Format for adding in
         self._NE=np.array([1/18.81*(-neUx+neYx-neex),1/30.1*(-neUy+neYy-neey),1/30.1*(-neUz+neYz-neez),0,0,1/.2429*(-neUw+neYw-neew)])
+    
+    
+    def feedforward(self):
+        rotItoB = self._vehicle_model.rotItoB
+        rotBtoI = self._vehicle_model.rotBtoI
+        Ad=np.hstack((np.dot(rotItoB, self._reference['acc'][0:3]),np.dot(rotItoB, self._reference['acc'][3:6]))) #6DOF
+        Vd=np.hstack((np.dot(rotItoB, self._reference['vel'][0:3]),np.dot(rotItoB, self._reference['vel'][3:6])))
+        quat=self._reference['rot']
+        rot=euler_from_quaternion(quat)
         
+        M=np.array([[18.81,0,0,0,0,0],
+                    [0,30.1,0,0,0,0],
+                    [0,0,30.1,0,0,0],
+                    [0,0,0,.113,0,0],
+                    [0,0,0,0,.1726,0],
+                    [0,0,0,0,0,.2429]])
+        U=np.dot(M,Ad)
+        
+        Dl=np.array([[-8.814,0,0,0,0,0],
+                     [0,-20.1,0,0,0,0],
+                     [0,0,-20.1,0,0,0],
+                     [0,0,0,0,0,0],
+                     [0,0,0,0,.0604,0],
+                     [0,0,0,0,0,-.0279]])
+        Dq=np.array([[-21.42,0,0,0,0,0],
+                     [0,-28.41,0,0,0,0],
+                     [0,0,-52.13,0,0,0],
+                     [0,0,0,-19.24,0,0],
+                     [0,0,0,0,-22.17,0],
+                     [0,0,0,0,0,-14.98]])
+        C=np.array([[0,0,0,0,30.1*Vd[2],-30.1*Vd[1]],
+                    [0,0,0,-30.1*Vd[2],0,18.81*Vd[0]],
+                    [0,0,0,30.1*Vd[1],-18.81*Vd[0],0],
+                    [0,30.1*Vd[2],-30.1*Vd[1],0,.2707*Vd[5],-.1121*Vd[4]],
+                    [-30.1*Vd[2],0,18.81*Vd[0],-.2707*Vd[5],0,.113*Vd[3]],
+                    [30.1*Vd[1],-18.81*Vd[0],0,.1121*Vd[4],-.113*Vd[3],0]])
+        W=10
+        B=10
+        xg=0
+        yg=0
+        zg=0
+        xb=0
+        yb=0
+        zb=.16
+        
+        g=np.array([[(W-B)*np.sin(rot[1])],
+                    [-(W-B)*np.cos(rot[1])*np.sin(rot[0])],
+                    [-(W-B)*np.cos(rot[1])*np.cos(rot[0])],
+                    [-(yg*W-yb*B)*np.cos(rot[1])*np.cos(rot[0])+(zg*W-zb*B)*np.cos(rot[1])*np.sin(rot[0])],
+                    [(zg*W-zb*B)*np.sin(rot[1])+(xg*W-xb*B)*np.cos(rot[1])*np.cos(rot[0])],
+                    [-(xg*W-xb*B)*np.cos(rot[1])+(yg*W-yb*B)*np.cos(rot[1])*np.sin(rot[0])]])
+        
+        self.sigma=-np.dot(Dl-np.dot(Dq,Vd),Vd)-np.dot(C,Vd)+g+U
 
     def publish_control_wrench(self, force):
         """Publish the thruster manager control set-point.

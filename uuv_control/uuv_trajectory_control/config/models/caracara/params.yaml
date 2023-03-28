@@ -1,0 +1,25 @@
+mass: 60.0
+model: caracara
+inertial:
+  ixx: 3.05
+  iyy: 6.25
+  izz: 6.80
+  ixy: 0.0
+  ixz: 0.0
+  iyz: 0.0
+cog: [0, 0, 0]
+cob: [0, 0, 0.4]
+volume: .3
+length: .6
+height: 1.0
+width: .5
+base_link: base_link
+Ma: [30, 0,   0,  0,  0,  0,
+    0, 50, 0,   0,     0,    0,
+    0,   0,  50,  0, 0,  0,
+    0,   0,  0,   10, 0,  0,
+    0,   0,  0,   0,  10, 0,
+    0,   0,  0,   0,  0,  10]
+linear_damping: [-20, -40, -40, -0.1, -0.5, -.5]
+quad_damping: [-44, -56, -110, -40, -40, -30]
+density: 1028.0

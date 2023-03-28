@@ -111,17 +111,45 @@
       </collision>
     </link>
 
-    <gazebo>
-      <plugin name="${namespace}_${thruster_id}_thruster_model" filename="libuuv_thruster_ros_plugin.so">
-        <linkName>${namespace}/thruster_${thruster_id}</linkName>
-        <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
-        <thrusterID>${thruster_id}</thrusterID>
-        <thrustMin>-51.48</thrustMin>
-        <thrustMax>51.48</thrustMax>
-        <xacro:insert_block name="dynamics"/>
-        <xacro:insert_block name="conversion"/>
-      </plugin>
-    </gazebo>
+    <xacro:if value="${namespace == 'bluerov2'}">
+      <gazebo>
+        <plugin name="${namespace}_${thruster_id}_thruster_model" filename="libuuv_thruster_ros_plugin.so">
+          <linkName>${namespace}/thruster_${thruster_id}</linkName>
+          <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
+          <thrusterID>${thruster_id}</thrusterID>
+          <thrustMin>-51.48</thrustMin>
+          <thrustMax>51.48</thrustMax>
+          <xacro:insert_block name="dynamics"/>
+          <xacro:insert_block name="conversion"/>
+        </plugin>
+      </gazebo>
+    </xacro:if>
+    
+    <xacro:if value="${namespace == 'lefty'}">
+      <gazebo>
+        <plugin name="${namespace}_${thruster_id}_thruster_model" filename="libuuv_thruster_ros_plugin.so">
+          <linkName>${namespace}/thruster_${thruster_id}</linkName>
+          <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
+          <thrusterID>${thruster_id}</thrusterID>
+          <thrustMin>-51.48</thrustMin>
+          <thrustMax>51.48</thrustMax>
+          <xacro:insert_block name="dynamics"/>
+          <xacro:insert_block name="conversion"/>
+        </plugin>
+      </gazebo>
+    </xacro:if>
+    
+    <xacro:if value="${namespace == 'bernard'}">
+      <gazebo>
+        <plugin name="${namespace}_${thruster_id}_thruster_model" filename="libuuv_thruster_ros_plugin.so">
+          <linkName>${namespace}/thruster_${thruster_id}</linkName>
+          <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
+          <thrusterID>${thruster_id}</thrusterID>
+          <xacro:insert_block name="dynamics"/>
+          <xacro:insert_block name="conversion"/>
+        </plugin>
+      </gazebo>
+    </xacro:if>
 
     <gazebo reference="${namespace}/thruster_${thruster_id}">
       <selfCollide>false</selfCollide>
