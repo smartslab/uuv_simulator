@@ -1,9 +1,9 @@
-mass: 10
+mass: 20
 model: hardware
 inertial:
-  ixx: 10
-  iyy: 10
-  izz: 10
+  ixx: 20
+  iyy: 20
+  izz: 20
   ixy: .113
   ixz: .233
   iyz: .215

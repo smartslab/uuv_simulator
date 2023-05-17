@@ -54,9 +54,9 @@ class Vehicle(object):
         self._logger = get_logger()
 
         if self._inertial_frame_id == 'world':
-            self._body_frame_id = 'base_link'
+            self._body_frame_id = 'oak-d_frame'
         else:
-            self._body_frame_id = 'base_link_ned'
+            self._body_frame_id = 'oak-d_frame'
 
         try:
             import tf2_ros
@@ -718,6 +718,7 @@ class Vehicle(object):
         self._pose['pos'] = np.array([msg.pose.pose.position.x,
                                       msg.pose.pose.position.y,
                                       msg.pose.pose.position.z])
+        #rospy.logwarn(str(self._pose['pos']))
 
         # Using the (x, y, z, w) format for quaternions
         self._pose['rot'] = np.array([msg.pose.pose.orientation.x,
