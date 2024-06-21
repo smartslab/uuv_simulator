@@ -4,13 +4,13 @@
   <arg name="joy_id" default="0"/>
   <!-- Joystick mapping - default: XBox 360 controller, now is xbox 1 controller -->
   <!-- To activate the vehicle teleop, the deadman button has to remain pressed -->
-  <arg name="deadman_button" default="6"/>
+  <arg name="deadman_button" default="4"/>
   <arg name="exclusion_buttons" default="-1"/>
   <arg name="axis_roll" default="-1"/>
   <arg name="axis_pitch" default="-1"/>
-  <arg name="axis_yaw" default="0"/> <!-- formerly 0,4,3,1 xbox1= 0,3,2,1 xboxwired= 0,1,3,4-->
+  <arg name="axis_yaw" default="3"/> <!-- formerly 0,4,3,1 xbox1= 0,3,2,1 xboxwired= 0,1,3,4, logitec= 3,1,0,4-->
   <arg name="axis_x" default="1"/> 
-  <arg name="axis_y" default="3"/>
+  <arg name="axis_y" default="0"/>
   <arg name="axis_z" default="4"/>
   <arg name="gain_roll" default="0.0"/>
   <arg name="gain_pitch" default="0.0"/>

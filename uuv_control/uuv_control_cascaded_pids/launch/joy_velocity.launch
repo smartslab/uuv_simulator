@@ -2,7 +2,7 @@
   <arg name="model_name" />
   <arg name="uuv_name" default="$(arg model_name)"/>
   <arg name="joy_id" default="0"/>
-  <arg name="deadman_button" default="6"/>
+  <arg name="deadman_button" default="4"/>
   <arg name="gain_yaw" default=".2"/>
   <arg name="axis_roll" default="-1"/>
   <arg name="axis_pitch" default="-1"/>
@@ -28,7 +28,7 @@
 
     <node pkg="uuv_control_cascaded_pid" type="VelocityControl.py" name="velocity_control"
         output="screen">
-      <remap from="odom" to="/$(arg uuv_name)/pose_gt"/>
+      <remap from="odom" to="/$(arg uuv_name)/cheater"/>
       <remap from="cmd_accel" to="/$(arg uuv_name)/cmd_accel"/>
     </node>
   </group>
